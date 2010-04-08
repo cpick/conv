@@ -15,5 +15,4 @@ CMakeFiles/
 *.a
 *.la
 *.so
-
-/bin/
+conv
