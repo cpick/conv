@@ -16,3 +16,7 @@ CMakeFiles/
 *.la
 *.so
 conv
+
+#tmp
+config.h
+config.h.in
