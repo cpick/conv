@@ -14,7 +14,8 @@ FIND_PACKAGE(Curses)
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
         ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-include_directories(${CURSES_INCLUDE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+        ${CURSES_INCLUDE_DIR})
 
 set(CMAKE_C_FLAGS "-Wall -W")
 set(CMAKE_C_FLAGS_DEBUG "-g")

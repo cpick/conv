@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -36,6 +37,67 @@ int paint_string(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
     {
         fprintf(stderr, "%s: waddnstr failed\n", __func__);
         return -1;
+    }
+
+    ++*p_y;
+    return 0;
+}
+
+/**
+ * TODO
+ */
+int paint_char(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
+        const char *p_buf_end)
+{
+    int x;
+
+    if(p_buf == p_buf_end)
+        return 0;
+
+    if(ERR == mvwaddstr(p_window, *p_y, 0 /*start of line*/, "C: "))
+    {
+        fprintf(stderr, "%s: mvwaddstr failed\n", __func__);
+        return -1;
+    }
+
+    x = getcurx(p_window);
+
+    if(((x_max - x) * 2) < (p_buf_end - p_buf))
+        p_buf_end = p_buf + ((x_max - x) * 2);
+
+    for(; (p_buf + 1) < p_buf_end; p_buf += 2)
+    {
+        int i;
+        int c;
+
+        /* convert 2 hex characters */
+        c = 0;
+        for(i = 0; i < 2; ++i)
+        {
+            c *= 16;
+            if((p_buf[i] >= '0') && (p_buf[i] <= '9'))
+                c += p_buf[i] - '0';
+            else if((p_buf[i] >= 'a') && (p_buf[i] <= 'f'))
+                c += p_buf[i] - 'a' + 10;
+            else if((p_buf[i] >= 'A') && (p_buf[i] <= 'F'))
+                c += p_buf[i] - 'A' + 10;
+            else
+            {
+                c = 0;
+                break;
+            }
+        }
+
+        if((c <= 0) || (c > CHAR_MAX))
+        {
+            c = '.';
+        }
+
+        if(ERR == wprintw(p_window, "%c", (char)c))
+        {
+            fprintf(stderr, "%s: mvwprintw failed\n", __func__);
+            return -1;
+        }
     }
 
     ++*p_y;
@@ -168,6 +230,12 @@ int paint_window(WINDOW *p_window, const char *p_buf, const char *p_buf_end)
     /* verify window height */
     getmaxyx(p_window, y_max, x_max);
     y = 1;  /* paint top row last */
+
+    if((y < y_max) && paint_char(p_window, &y, x_max, p_buf, p_buf_end))
+    {
+        fprintf(stderr, "%s: paint_char failed\n", __func__);
+        return -1;
+    }
 
     if((y < y_max) && paint_ascii(p_window, &y, x_max, p_buf, p_buf_end))
     {
