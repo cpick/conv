@@ -1,3 +1,10 @@
+/**
+ * TODO
+ * @author Chris Pick <conv@chirspick.com>
+ * @section LICENSE
+ * (C) 2010 Chris Pick, all rights reserved.
+ */
+
 #include "config.h"
 
 #include <errno.h>
@@ -21,11 +28,18 @@
 
 /**
  * TODO
+ * @param p_window  pointer to window to paint to
+ * @param p_y   pointer to number of line to paint to, will be incremented if
+ *              line was painted
+ * @param x_max width of the line
+ * @param p_buf pointer to buffer to paint
+ * @return 0 if no errors; !0 otherwise
  */
 int paint_string(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 {
     int x;
 
+    /* print prefix at begining of line */
     if(ERR == mvwaddstr(p_window, *p_y, 0 /*start of line*/, "S: "))
     {
         fprintf(stderr, "%s: mvwaddstr failed\n", __func__);
@@ -40,6 +54,7 @@ int paint_string(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
         return -1;
     }
 
+    /* if we're still on the same line, clear the rest of it */
     if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
     {
         fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
@@ -51,6 +66,13 @@ int paint_string(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 
 /**
  * TODO
+ * @param p_window  pointer to window to paint to
+ * @param p_y   pointer to number of line to paint to, will be incremented if
+ *              line was painted
+ * @param x_max width of the line
+ * @param p_buf pointer to buffer to paint
+ * @param p_buf_end pointer to the NUL byte that terminates p_buf
+ * @return 0 if no errors; !0 otherwise
  */
 int paint_char(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
         const char *p_buf_end)
@@ -60,6 +82,7 @@ int paint_char(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
     if(p_buf == p_buf_end)
         return 0;
 
+    /* print prefix at begining of line */
     if(ERR == mvwaddstr(p_window, *p_y, 0 /*start of line*/, "C: "))
     {
         fprintf(stderr, "%s: mvwaddstr failed\n", __func__);
@@ -91,17 +114,17 @@ int paint_char(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
                 return 0;
         }
 
-        /* TODO can this happen? */
         if((c < CHAR_MIN) || (c > CHAR_MAX))
             return 0;
 
-        if(ERR == wprintw(p_window, "%c", (char)c))
+        if(ERR == waddch(p_window, (char)c))
         {
             fprintf(stderr, "%s: mvwprintw failed\n", __func__);
             return -1;
         }
     }
 
+    /* if we're still on the same line, clear the rest of it */
     if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
     {
         fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
@@ -113,6 +136,13 @@ int paint_char(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
 
 /**
  * TODO
+ * @param p_window  pointer to window to paint to
+ * @param p_y   pointer to number of line to paint to, will be incremented if
+ *              line was painted
+ * @param x_max width of the line
+ * @param p_buf pointer to buffer to paint
+ * @param p_buf_end pointer to the NUL byte that terminates p_buf
+ * @return 0 if no errors; !0 otherwise
  */
 int paint_ascii(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
         const char *p_buf_end)
@@ -122,6 +152,7 @@ int paint_ascii(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
     if(p_buf == p_buf_end)
         return 0;
 
+    /* print prefix at begining of line */
     if(ERR == mvwaddstr(p_window, *p_y, 0 /*start of line*/, "A: "))
     {
         fprintf(stderr, "%s: mvwaddstr failed\n", __func__);
@@ -142,6 +173,7 @@ int paint_ascii(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
         }
     }
 
+    /* if we're still on the same line, clear the rest of it */
     if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
     {
         fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
@@ -153,6 +185,13 @@ int paint_ascii(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
 
 /**
  * TODO
+ * @param p_window  pointer to window to paint to
+ * @param p_y   pointer to number of line to paint to, will be incremented if
+ *              line was painted
+ * @param x_max width of the line
+ * @param p_buf pointer to buffer to paint
+ * @param p_buf_end pointer to the NUL byte that terminates p_buf
+ * @return 0 if no errors; !0 otherwise
  */
 int paint_dec(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 {
@@ -177,12 +216,14 @@ int paint_dec(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
     if(rc > x_max)
         return 0;
 
+    /* print at begining of line */
     if(ERR == mvwaddstr(p_window, *p_y, 0 /*start of line*/, buf))
     {
         fprintf(stderr, "%s: mvwaddstr failed\n", __func__);
         return -1;
     }
 
+    /* if we're still on the same line, clear the rest of it */
     if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
     {
         fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
@@ -194,6 +235,13 @@ int paint_dec(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 
 /**
  * TODO
+ * @param p_window  pointer to window to paint to
+ * @param p_y   pointer to number of line to paint to, will be incremented if
+ *              line was painted
+ * @param x_max width of the line
+ * @param p_buf pointer to buffer to paint
+ * @param p_buf_end pointer to the NUL byte that terminates p_buf
+ * @return 0 if no errors; !0 otherwise
  */
 int paint_hex(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 {
@@ -218,12 +266,14 @@ int paint_hex(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
     if(rc > x_max)
         return 0;
 
+    /* print at begining of line */
     if(ERR == mvwaddstr(p_window, *p_y, 0 /*start of line*/, buf))
     {
         fprintf(stderr, "%s: mvwaddstr failed\n", __func__);
         return -1;
     }
 
+    /* if we're still on the same line, clear the rest of it */
     if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
     {
         fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
@@ -235,6 +285,13 @@ int paint_hex(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 
 /**
  * TODO
+ * @param p_window  pointer to window to paint to
+ * @param p_y   pointer to number of line to paint to, will be incremented if
+ *              line was painted
+ * @param x_max width of the line
+ * @param p_buf pointer to buffer to paint
+ * @param p_buf_end pointer to the NUL byte that terminates p_buf
+ * @return 0 if no errors; !0 otherwise
  */
 int paint_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 {
@@ -263,12 +320,14 @@ int paint_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
     if(rc > x_max)
         return 0;
 
+    /* print at begining of line */
     if(ERR == mvwaddstr(p_window, *p_y, 0 /*start of line*/, buf))
     {
         fprintf(stderr, "%s: mvwaddstr failed\n", __func__);
         return -1;
     }
 
+    /* if we're still on the same line, clear the rest of it */
     if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
     {
         fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
@@ -280,6 +339,10 @@ int paint_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 
 /**
  * TODO
+ * @param p_window  pointer to window to paint to
+ * @param p_buf pointer to buffer to paint
+ * @param p_buf_end pointer to the NUL byte that terminates p_buf
+ * @return 0 if no errors; !0 otherwise
  */
 int paint_window(WINDOW *p_window, const char *p_buf, const char *p_buf_end)
 {
@@ -346,6 +409,7 @@ int paint_window(WINDOW *p_window, const char *p_buf, const char *p_buf_end)
 
 /**
  * TODO
+ * @param p_window  pointer to window to use
  */
 int main_int(WINDOW *p_window)
 {
@@ -422,6 +486,9 @@ int main_int(WINDOW *p_window)
     return 0;
 }
 
+/**
+ * TODO
+ */
 int main(void)
 {
     WINDOW *p_window;

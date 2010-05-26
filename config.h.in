@@ -1,0 +1,11 @@
+/**
+ * TODO
+ * @author Chris Pick <conv@chirspick.com>
+ * @section LICENSE
+ * (C) 2010 Chris Pick, all rights reserved.
+ */
+
+#cmakedefine CURSES_HAVE_CURSES_H
+#cmakedefine CURSES_HAVE_NCURSES_H
+#cmakedefine CURSES_HAVE_NCURSES_NCURSES_H
+#cmakedefine CURSES_HAVE_NCURSES_CURSES_H
