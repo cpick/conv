@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #ifdef CURSES_HAVE_CURSES_H
 #include <curses.h>
@@ -39,6 +40,11 @@ int paint_string(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
         return -1;
     }
 
+    if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
+    {
+        fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
+        return -1;
+    }
     ++*p_y;
     return 0;
 }
@@ -82,16 +88,12 @@ int paint_char(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
             else if((p_buf[i] >= 'A') && (p_buf[i] <= 'F'))
                 c += p_buf[i] - 'A' + 10;
             else
-            {
-                c = 0;
-                break;
-            }
+                return 0;
         }
 
-        if((c <= 0) || (c > CHAR_MAX))
-        {
-            c = '.';
-        }
+        /* TODO can this happen? */
+        if((c < CHAR_MIN) || (c > CHAR_MAX))
+            return 0;
 
         if(ERR == wprintw(p_window, "%c", (char)c))
         {
@@ -100,6 +102,11 @@ int paint_char(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
         }
     }
 
+    if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
+    {
+        fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
+        return -1;
+    }
     ++*p_y;
     return 0;
 }
@@ -135,6 +142,11 @@ int paint_ascii(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
         }
     }
 
+    if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
+    {
+        fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
+        return -1;
+    }
     ++*p_y;
     return 0;
 }
@@ -171,6 +183,11 @@ int paint_dec(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
         return -1;
     }
 
+    if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
+    {
+        fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
+        return -1;
+    }
     ++*p_y;
     return 0;
 }
@@ -207,6 +224,56 @@ int paint_hex(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
         return -1;
     }
 
+    if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
+    {
+        fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
+        return -1;
+    }
+    ++*p_y;
+    return 0;
+}
+
+/**
+ * TODO
+ */
+int paint_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
+{
+    char *p_buf_parse_end;
+    time_t val;
+    const char *p_val_str;
+    char buf[32 /*larger then LLONG_MAX + 1 NUL byte*/];
+    int rc;
+
+    errno = 0;
+    val = strtoll(p_buf, &p_buf_parse_end, 0 /*base*/);
+    if((p_buf == p_buf_parse_end) || (*p_buf_parse_end != '\0')
+            || (errno == ERANGE))
+        return 0;
+
+    if(!(p_val_str = ctime(&val)))
+        return 0;
+
+    if((rc = snprintf(buf, sizeof(buf), "T: %s", p_val_str)) < 0)
+    {
+        fprintf(stderr, "%s: snprintf failed\n", __func__);
+        return -1;
+    }
+
+    /* if too long */
+    if(rc > x_max)
+        return 0;
+
+    if(ERR == mvwaddstr(p_window, *p_y, 0 /*start of line*/, buf))
+    {
+        fprintf(stderr, "%s: mvwaddstr failed\n", __func__);
+        return -1;
+    }
+
+    if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
+    {
+        fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
+        return -1;
+    }
     ++*p_y;
     return 0;
 }
@@ -219,13 +286,6 @@ int paint_window(WINDOW *p_window, const char *p_buf, const char *p_buf_end)
     int y;
     int y_max;
     int x_max;
-
-    /* clear screen */
-    if(ERR == werase(p_window))
-    {
-        fprintf(stderr, "%s: werase failed\n", __func__);
-        return -1;
-    }
 
     /* verify window height */
     getmaxyx(p_window, y_max, x_max);
@@ -255,13 +315,25 @@ int paint_window(WINDOW *p_window, const char *p_buf, const char *p_buf_end)
         return -1;
     }
 
+    if((y < y_max) && paint_time(p_window, &y, x_max, p_buf))
+    {
+        fprintf(stderr, "%s: paint_time failed\n", __func__);
+        return -1;
+    }
+
+    /* clear rest of screen */
+    if(ERR == wclrtobot(p_window))
+    {
+        fprintf(stderr, "%s: wclrtobot failed\n", __func__);
+        return -1;
+    }
+
     y = 0;  /* fill in top row */
     if((y < y_max) && paint_string(p_window, &y, x_max, p_buf))
     {
         fprintf(stderr, "%s: paint_string failed\n", __func__);
         return -1;
     }
-
 
     if(ERR == wrefresh(p_window))
     {
