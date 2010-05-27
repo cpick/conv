@@ -1,6 +1,5 @@
 /**
- * Read characters from stdin interpret them in many different ways and 
- * print each one to its own line.
+ * Read characters and print many different interpretations.
  * @author Chris Pick <conv@chirspick.com>
  * @section LICENSE
  *
@@ -451,8 +450,7 @@ int paint_window(WINDOW *p_window, const char *p_buf, const char *p_buf_end)
 }
 
 /**
- * Read characters from stdin interpret them in many different ways and 
- * print each one to its own line.
+ * Read characters and print many different interpretations.
  * @param p_window  pointer to window to use
  */
 int main_int(WINDOW *p_window)
@@ -536,8 +534,7 @@ int main_int(WINDOW *p_window)
 }
 
 /**
- * Read characters from stdin interpret them in many different ways and 
- * print each one to its own line.
+ * Read characters and print many different interpretations.
  */
 int main(void)
 {
