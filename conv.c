@@ -1,5 +1,6 @@
 /**
- * TODO
+ * Read characters from stdin interpret them in many different ways and 
+ * print each one to its own line.
  * @author Chris Pick <conv@chirspick.com>
  * @section LICENSE
  * (C) 2010 Chris Pick, all rights reserved.
@@ -27,7 +28,7 @@
 #endif
 
 /**
- * TODO
+ * Paint buffer contets to the current line as a string.
  * @param p_window  pointer to window to paint to
  * @param p_y   pointer to number of line to paint to, will be incremented if
  *              line was painted
@@ -48,6 +49,7 @@ int paint_string(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 
     x = getcurx(p_window);
 
+    /* print buffer up to end of line */
     if(ERR == waddnstr(p_window, p_buf, x_max - x))
     {
         fprintf(stderr, "%s: waddnstr failed\n", __func__);
@@ -65,7 +67,8 @@ int paint_string(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 }
 
 /**
- * TODO
+ * If buffer contains a series of hex digits, interpret them as ascii and
+ * paint them to the current line.
  * @param p_window  pointer to window to paint to
  * @param p_y   pointer to number of line to paint to, will be incremented if
  *              line was painted
@@ -91,15 +94,17 @@ int paint_char(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
 
     x = getcurx(p_window);
 
+    /* don't go past end of the line */
     if(((x_max - x) * 2) < (p_buf_end - p_buf))
         p_buf_end = p_buf + ((x_max - x) * 2);
 
+    /* for each two characters */
     for(; (p_buf + 1) < p_buf_end; p_buf += 2)
     {
         int i;
         int c;
 
-        /* convert 2 hex characters */
+        /* convert 2 hex characters from ascii to decimal */
         c = 0;
         for(i = 0; i < 2; ++i)
         {
@@ -135,7 +140,7 @@ int paint_char(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
 }
 
 /**
- * TODO
+ * Paint ascii values of buffer contets to the current line.
  * @param p_window  pointer to window to paint to
  * @param p_y   pointer to number of line to paint to, will be incremented if
  *              line was painted
@@ -161,9 +166,11 @@ int paint_ascii(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
 
     x = getcurx(p_window);
 
+    /* don't go past end of the line */
     if(((x_max - x) / 2) < (p_buf_end - p_buf))
         p_buf_end = p_buf + ((x_max - x) / 2);
 
+    /* print each character's ascii value in hex */
     for(; p_buf < p_buf_end; ++p_buf)
     {
         if(ERR == wprintw(p_window, "%02x", (unsigned)*p_buf))
@@ -184,7 +191,7 @@ int paint_ascii(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
 }
 
 /**
- * TODO
+ * If buffer contains a hex number, paint it to the current line in decimal.
  * @param p_window  pointer to window to paint to
  * @param p_y   pointer to number of line to paint to, will be incremented if
  *              line was painted
@@ -200,12 +207,14 @@ int paint_dec(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
     char buf[32 /*larger then LLONG_MAX + 1 NUL byte*/];
     int rc;
 
+    /* read buffer in as hex */
     errno = 0;
     val = strtoll(p_buf, &p_buf_parse_end, 16 /*base*/);
     if((p_buf == p_buf_parse_end) || (*p_buf_parse_end != '\0')
             || (errno == ERANGE))
         return 0;
 
+    /* format buffer's number as decimal */
     if((rc = snprintf(buf, sizeof(buf), "D: %lld", val)) < 0)
     {
         fprintf(stderr, "%s: snprintf failed\n", __func__);
@@ -234,7 +243,7 @@ int paint_dec(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 }
 
 /**
- * TODO
+ * If buffer contains a decimal number, paint it to the current line in hex.
  * @param p_window  pointer to window to paint to
  * @param p_y   pointer to number of line to paint to, will be incremented if
  *              line was painted
@@ -250,12 +259,14 @@ int paint_hex(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
     char buf[32 /*larger then LLONG_MAX + 1 NUL byte*/];
     int rc;
 
+    /* read buffer in as decimal */
     errno = 0;
     val = strtoll(p_buf, &p_buf_parse_end, 10 /*base*/);
     if((p_buf == p_buf_parse_end) || (*p_buf_parse_end != '\0')
             || (errno == ERANGE))
         return 0;
 
+    /* format buffer's number as hex */
     if((rc = snprintf(buf, sizeof(buf), "H: %llx", val)) < 0)
     {
         fprintf(stderr, "%s: snprintf failed\n", __func__);
@@ -284,7 +295,8 @@ int paint_hex(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 }
 
 /**
- * TODO
+ * If buffer contains a number, interpret it as the number of seconds from
+ * epoch and paint it to the current line as a string.
  * @param p_window  pointer to window to paint to
  * @param p_y   pointer to number of line to paint to, will be incremented if
  *              line was painted
@@ -301,12 +313,14 @@ int paint_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
     char buf[32 /*larger then LLONG_MAX + 1 NUL byte*/];
     int rc;
 
+    /* read buffer as number */
     errno = 0;
     val = strtoll(p_buf, &p_buf_parse_end, 0 /*base*/);
     if((p_buf == p_buf_parse_end) || (*p_buf_parse_end != '\0')
             || (errno == ERANGE))
         return 0;
 
+    /* format buffer as time */
     if(!(p_val_str = ctime(&val)))
         return 0;
 
@@ -338,7 +352,7 @@ int paint_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 }
 
 /**
- * TODO
+ * Interpret buffer in many different ways and print each one to its own line.
  * @param p_window  pointer to window to paint to
  * @param p_buf pointer to buffer to paint
  * @param p_buf_end pointer to the NUL byte that terminates p_buf
@@ -353,6 +367,8 @@ int paint_window(WINDOW *p_window, const char *p_buf, const char *p_buf_end)
     /* verify window height */
     getmaxyx(p_window, y_max, x_max);
     y = 1;  /* paint top row last */
+
+    /* try to print out as many interpretations as will fit */
 
     if((y < y_max) && paint_char(p_window, &y, x_max, p_buf, p_buf_end))
     {
@@ -398,6 +414,7 @@ int paint_window(WINDOW *p_window, const char *p_buf, const char *p_buf_end)
         return -1;
     }
 
+    /* draw to screen */
     if(ERR == wrefresh(p_window))
     {
         fprintf(stderr, "%s: wrefresh failed\n", __func__);
@@ -408,7 +425,8 @@ int paint_window(WINDOW *p_window, const char *p_buf, const char *p_buf_end)
 }
 
 /**
- * TODO
+ * Read characters from stdin interpret them in many different ways and 
+ * print each one to its own line.
  * @param p_window  pointer to window to use
  */
 int main_int(WINDOW *p_window)
@@ -416,6 +434,8 @@ int main_int(WINDOW *p_window)
     int c;
     char buf[1024];
     char *p_buf;
+
+    /* configure curses */
 
     if(ERR == cbreak())
     {
@@ -445,6 +465,7 @@ int main_int(WINDOW *p_window)
         return -1;
     }
 
+    /* initial, empty paint */
     p_buf = buf;
     *p_buf = '\0';
     if(paint_window(p_window, buf, p_buf))
@@ -453,6 +474,7 @@ int main_int(WINDOW *p_window)
         return -1;
     }
 
+    /* while there are more characters to get */
     while(ERR != (c = wgetch(p_window)))
     {
         if(KEY_BACKSPACE == c)
@@ -476,6 +498,7 @@ int main_int(WINDOW *p_window)
             *p_buf = '\0';
         }
 
+        /* repaint */
         if(paint_window(p_window, buf, p_buf))
         {
             fprintf(stderr, "%s: paint_window failed\n", __func__);
@@ -487,7 +510,8 @@ int main_int(WINDOW *p_window)
 }
 
 /**
- * TODO
+ * Read characters from stdin interpret them in many different ways and 
+ * print each one to its own line.
  */
 int main(void)
 {
@@ -500,6 +524,7 @@ int main(void)
         return EXIT_FAILURE;
     }
 
+    /* read in and paint characters */
     rc = main_int(p_window);
     if(ERR == endwin())
     {
