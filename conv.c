@@ -501,7 +501,7 @@ int main_int(WINDOW *p_window)
     /* while there are more characters to get */
     while(ERR != (c = wgetch(p_window)))
     {
-        if(KEY_BACKSPACE == c)
+        if((KEY_BACKSPACE == c) || ('\b' == c))
         {
             if(p_buf <= buf)
                 continue;

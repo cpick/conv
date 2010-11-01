@@ -1,6 +1,10 @@
+#hidden
+.*
+
 #vim
 .*.sw*
 Session.vim
+local.vim
 tags
 
 #cmake
@@ -15,8 +19,7 @@ CMakeFiles/
 *.a
 *.la
 *.so
-conv
-bin
+bin/
 
 #tmp
 config.h
