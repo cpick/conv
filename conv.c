@@ -229,7 +229,7 @@ int paint_dec(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 {
     char *p_buf_parse_end;
     long long val;
-    char buf[32 /*larger then LLONG_MAX + 1 NUL byte*/];
+    char buf[32 /*larger then prefix + LLONG_MAX + 1 NUL byte*/];
     int rc;
 
     /* read buffer in as hex */
@@ -281,7 +281,7 @@ int paint_hex(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 {
     char *p_buf_parse_end;
     long long val;
-    char buf[32 /*larger then LLONG_MAX + 1 NUL byte*/];
+    char buf[32 /*larger then prefix + LLONG_MAX + 1 NUL byte*/];
     int rc;
 
     /* read buffer in as decimal */
@@ -335,7 +335,7 @@ int paint_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
     char *p_buf_parse_end;
     time_t val;
     const char *p_val_str;
-    char buf[32 /*larger then LLONG_MAX + 1 NUL byte*/];
+    char buf[32 /*larger then prefix + LLONG_MAX + 1 NUL byte*/];
     int rc;
 
     /* read buffer as number */
@@ -350,6 +350,86 @@ int paint_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
         return 0;
 
     if((rc = snprintf(buf, sizeof(buf), "T: %s", p_val_str)) < 0)
+    {
+        fprintf(stderr, "%s: snprintf failed\n", __func__);
+        return -1;
+    }
+
+    /* if too long */
+    if(rc > x_max)
+        return 0;
+
+    /* print at begining of line */
+    if(ERR == mvwaddstr(p_window, *p_y, 0 /*start of line*/, buf))
+    {
+        fprintf(stderr, "%s: mvwaddstr failed\n", __func__);
+        return -1;
+    }
+
+    /* if we're still on the same line, clear the rest of it */
+    if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
+    {
+        fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
+        return -1;
+    }
+    ++*p_y;
+    return 0;
+}
+
+/**
+ * If buffer contains a time, print the number of seconds since midnight.
+ * @param p_window  pointer to window to paint to
+ * @param p_y   pointer to number of line to paint to, will be incremented if
+ *              line was painted
+ * @param x_max width of the line
+ * @param p_buf pointer to buffer to paint
+ * @param p_buf_end pointer to the NUL byte that terminates p_buf
+ * @return 0 if no errors; !0 otherwise
+ */
+int paint_seconds(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
+{
+    char *p_buf_parse_end;
+    unsigned hours;
+    unsigned minutes;
+    unsigned seconds;
+    char buf[16 /*larger then prefix + one day in seconds + 1 NUL byte*/];
+    int rc;
+
+    /* read buffer as time */
+
+    /* read hours */
+    errno = 0;
+    hours = strtoul(p_buf, &p_buf_parse_end, 10 /*base*/);
+    if((p_buf == p_buf_parse_end) || (*p_buf_parse_end != ':')
+            || ((p_buf_parse_end - p_buf) > 2) || (errno == ERANGE)
+            || (hours >= 24))
+        return 0;
+
+    /* read minutes */
+    p_buf = p_buf_parse_end + 1 /*:*/;
+    errno = 0;
+    minutes = strtoul(p_buf, &p_buf_parse_end, 10 /*base*/);
+    if((p_buf == p_buf_parse_end)
+            || ((*p_buf_parse_end != '\0') && (*p_buf_parse_end != ':'))
+            || ((p_buf_parse_end - p_buf) > 2) || (errno == ERANGE)
+            || (minutes >= 60))
+        return 0;
+
+    /* if any seconds, read them */
+    seconds = 0;
+    if(*p_buf_parse_end != '\0')
+    {
+        p_buf = p_buf_parse_end + 1 /*:*/;
+        errno = 0;
+        seconds = strtoul(p_buf, &p_buf_parse_end, 10 /*base*/);
+        if((p_buf == p_buf_parse_end) || (*p_buf_parse_end != '\0')
+                || ((p_buf_parse_end - p_buf) > 2) || (errno == ERANGE)
+                || (seconds >= 60))
+            return 0;
+    }
+
+    if((rc = snprintf(buf, sizeof(buf), "M: %u",
+                    (((hours * 60) + minutes) * 60) + seconds)) < 0)
     {
         fprintf(stderr, "%s: snprintf failed\n", __func__);
         return -1;
@@ -422,6 +502,12 @@ int paint_window(WINDOW *p_window, const char *p_buf, const char *p_buf_end)
     if((y < y_max) && paint_time(p_window, &y, x_max, p_buf))
     {
         fprintf(stderr, "%s: paint_time failed\n", __func__);
+        return -1;
+    }
+
+    if((y < y_max) && paint_seconds(p_window, &y, x_max, p_buf))
+    {
+        fprintf(stderr, "%s: paint_seconds failed\n", __func__);
         return -1;
     }
 
