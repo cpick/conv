@@ -457,6 +457,72 @@ int paint_seconds(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
 }
 
 /**
+ * If buffer contains a number, interpret it as the number of seconds from
+ * midnight and paint it to the current line as a string.
+ * @param p_window  pointer to window to paint to
+ * @param p_y   pointer to number of line to paint to, will be incremented if
+ *              line was painted
+ * @param x_max width of the line
+ * @param p_buf pointer to buffer to paint
+ * @param p_buf_end pointer to the NUL byte that terminates p_buf
+ * @return 0 if no errors; !0 otherwise
+ */
+int paint_seconds_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
+{
+    char *p_buf_parse_end;
+    unsigned val;
+    unsigned hours;
+    unsigned minutes;
+    unsigned seconds;
+    char buf[16 /*larger then prefix + 3 '00:' * 3 + 1 NUL byte*/];
+    int rc;
+
+    /* read buffer as number */
+    errno = 0;
+    val = strtoul(p_buf, &p_buf_parse_end, 0 /*base*/);
+    if((p_buf == p_buf_parse_end) || (*p_buf_parse_end != '\0')
+            || (errno == ERANGE))
+        return 0;
+
+    seconds = val % 60;
+    val /= 60;  /* minutes since midnight */
+
+    minutes = val % 60;
+    hours = val / 60;
+
+    /* if invalid time */
+    if(hours >= 24)
+        return 0;
+
+    if((rc = snprintf(buf, sizeof(buf), "M: %.2u:%.2u:%.2u", hours, minutes,
+                    seconds)) < 0)
+    {
+        fprintf(stderr, "%s: snprintf failed\n", __func__);
+        return -1;
+    }
+
+    /* if too long */
+    if(rc > x_max)
+        return 0;
+
+    /* print at begining of line */
+    if(ERR == mvwaddstr(p_window, *p_y, 0 /*start of line*/, buf))
+    {
+        fprintf(stderr, "%s: mvwaddstr failed\n", __func__);
+        return -1;
+    }
+
+    /* if we're still on the same line, clear the rest of it */
+    if((*p_y == getcury(p_window)) && (ERR == wclrtoeol(p_window)))
+    {
+        fprintf(stderr, "%s: wclrtoeol failed\n", __func__);
+        return -1;
+    }
+    ++*p_y;
+    return 0;
+}
+
+/**
  * Interpret buffer in many different ways and print each one to its own line.
  * @param p_window  pointer to window to paint to
  * @param p_buf pointer to buffer to paint
@@ -508,6 +574,12 @@ int paint_window(WINDOW *p_window, const char *p_buf, const char *p_buf_end)
     if((y < y_max) && paint_seconds(p_window, &y, x_max, p_buf))
     {
         fprintf(stderr, "%s: paint_seconds failed\n", __func__);
+        return -1;
+    }
+
+    if((y < y_max) && paint_seconds_time(p_window, &y, x_max, p_buf))
+    {
+        fprintf(stderr, "%s: paint_seconds_time failed\n", __func__);
         return -1;
     }
 
