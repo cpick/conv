@@ -587,25 +587,43 @@ int main_int(WINDOW *p_window)
     /* while there are more characters to get */
     while(ERR != (c = wgetch(p_window)))
     {
-        if((KEY_BACKSPACE == c) || ('\b' == c))
+        switch(c)
         {
-            if(p_buf <= buf)
-                continue;
+            case '\4' /* CTRL-D */:
+            {
+                /* clear the buffer */
+                p_buf = buf;
+                *p_buf = '\0';
 
-            /* take a char off the end of buf */
-            --p_buf;
-            *p_buf = '\0';
-        }
-        else
-        {
-            if(p_buf >= (buf
-                        + (sizeof(buf) / (sizeof(buf[0]))) - 1 /* NUL byte */))
-                continue;
+                break;
+            }
 
-            /* add char onto end of buf */
-            *p_buf = c;
-            ++p_buf;
-            *p_buf = '\0';
+            case KEY_BACKSPACE:
+            case '\b':
+            {
+                if(p_buf <= buf)
+                    continue;
+
+                /* take a char off the end of buf */
+                --p_buf;
+                *p_buf = '\0';
+
+                break;
+            }
+
+            default:
+            {
+                if(p_buf >= (buf + (sizeof(buf) / (sizeof(buf[0])))
+                            - 1 /* NUL byte */))
+                    continue;
+
+                /* add char onto end of buf */
+                *p_buf = c;
+                ++p_buf;
+                *p_buf = '\0';
+
+                break;
+            }
         }
 
         /* repaint */
