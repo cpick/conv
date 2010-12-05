@@ -661,6 +661,9 @@ int main_int(WINDOW *p_window)
     {
         switch(c)
         {
+            case KEY_ENTER:
+            case '\n':
+            case '\r':
             case '\4' /* CTRL-D */:
             {
                 /* clear the buffer */
