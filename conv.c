@@ -628,7 +628,9 @@ int main_int(WINDOW *p_window)
     if(ERR == noecho())
     {
         fprintf(stderr, "%s: noecho failed\n", __func__);
-        return -1; } 
+        return -1;
+    }
+
     if(ERR == nonl())
     {
         fprintf(stderr, "%s: nonl failed\n", __func__);

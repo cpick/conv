@@ -37,7 +37,7 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 # dependencies
 
-FIND_PACKAGE(Curses)
+find_package(Curses)
 
 # build
 
