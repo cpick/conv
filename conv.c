@@ -222,7 +222,6 @@ int paint_ascii(WINDOW *p_window, int *p_y, int x_max, const char *p_buf,
  *              line was painted
  * @param x_max width of the line
  * @param p_buf pointer to buffer to paint
- * @param p_buf_end pointer to the NUL byte that terminates p_buf
  * @return 0 if no errors; !0 otherwise
  */
 int paint_dec(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
@@ -274,7 +273,6 @@ int paint_dec(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
  *              line was painted
  * @param x_max width of the line
  * @param p_buf pointer to buffer to paint
- * @param p_buf_end pointer to the NUL byte that terminates p_buf
  * @return 0 if no errors; !0 otherwise
  */
 int paint_hex(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
@@ -327,7 +325,6 @@ int paint_hex(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
  *              line was painted
  * @param x_max width of the line
  * @param p_buf pointer to buffer to paint
- * @param p_buf_end pointer to the NUL byte that terminates p_buf
  * @return 0 if no errors; !0 otherwise
  */
 int paint_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
@@ -383,7 +380,6 @@ int paint_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
  *              line was painted
  * @param x_max width of the line
  * @param p_buf pointer to buffer to paint
- * @param p_buf_end pointer to the NUL byte that terminates p_buf
  * @return 0 if no errors; !0 otherwise
  */
 int paint_seconds(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
@@ -464,7 +460,6 @@ int paint_seconds(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
  *              line was painted
  * @param x_max width of the line
  * @param p_buf pointer to buffer to paint
- * @param p_buf_end pointer to the NUL byte that terminates p_buf
  * @return 0 if no errors; !0 otherwise
  */
 int paint_seconds_time(WINDOW *p_window, int *p_y, int x_max, const char *p_buf)
