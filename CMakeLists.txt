@@ -1,4 +1,4 @@
-# author: Chris Pick <conv@chirspick.com>
+# author: Chris Pick <conv@chrispick.com>
 # license:
 #
 # Copyright 2010 Chris Pick. All rights reserved.

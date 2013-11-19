@@ -1,6 +1,6 @@
 /**
  * Read characters and print many different interpretations.
- * @author Chris Pick <conv@chirspick.com>
+ * @author Chris Pick <conv@chrispick.com>
  * @section LICENSE
  *
  * Copyright 2010 Chris Pick. All rights reserved.
