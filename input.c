@@ -32,12 +32,30 @@
 
 #include <input.h>
 
+#include <errno.h>
 #include <stdlib.h>
 
 
+static const input_t INPUT_INITIALIZER;
+
 input_t *input_new(const char *p_buf)
 {
-    return NULL;
+    input_t *p_input = malloc(sizeof(*p_input));
+    *p_input = INPUT_INITIALIZER;
+
+    char *p_buf_parse_end;
+    errno = 0;
+    p_input->value = strtol(p_buf, &p_buf_parse_end, 0 /*base*/);
+    if((p_buf == p_buf_parse_end) || (*p_buf_parse_end != '\0')
+            || (errno == ERANGE))
+        goto fail;
+
+    return p_input;
+
+fail:
+    input_free(p_input);
+    p_input = NULL;
+    return p_input;
 }
 
 void input_free(input_t *p_input)
