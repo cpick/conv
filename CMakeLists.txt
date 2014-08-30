@@ -55,3 +55,13 @@ set(conv_LIBS ${CURSES_LIBRARIES})
 
 add_executable(conv ${conv_SRCS})
 target_link_libraries(conv ${conv_LIBS})
+
+# test
+
+enable_testing()
+
+set(input_tst_SRCS "input.c" "input.t.c")
+
+add_executable(input.tst ${input_tst_SRCS})
+
+add_test(NAME input.tst COMMAND input.tst)
