@@ -38,6 +38,8 @@
 
 int main(void)
 {
+    /* test decimal */
+
     input_t *p_input = input_new("1234");
     if(!p_input)
     {
@@ -62,6 +64,15 @@ int main(void)
 
     input_free(p_input);
     p_input = NULL;
+
+    /* test invalid number */
+
+    p_input = input_new("xyz");
+    if(p_input)
+    {
+        fprintf(stderr, "%s: input_new succeeded unexpectedly\n", __func__);
+        return EXIT_FAILURE;
+    }
 
     printf("success\n");
     return EXIT_SUCCESS;
