@@ -33,6 +33,7 @@
 #include <input.h>
 
 #include <errno.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -58,23 +59,51 @@ static bool input_prepend(input_t **pp_input, uint32_t value)
     return true;
 }
 
-input_t *input_new(const char *p_buf)
+static bool input_prepend_base(input_t **pp_input, const char *p_buf, int base)
 {
     input_t *p_input = NULL;
 
     char *p_buf_parse_end;
     errno = 0;
-    uint32_t value = strtol(p_buf, &p_buf_parse_end, 0 /*base*/);
+    uint32_t value = strtol(p_buf, &p_buf_parse_end, base);
     if((p_buf == p_buf_parse_end) || (*p_buf_parse_end != '\0')
             || (errno == ERANGE))
-        goto fail;
+        return true /* not an error */;
 
-    if(!input_prepend(&p_input, value))
-        goto fail;
+    return input_prepend(pp_input, value);
+}
+
+static bool input_prepend_decimal(input_t **pp_input, const char *p_buf)
+{
+    return input_prepend_base(pp_input, p_buf, 10 /* base */);
+}
+
+input_t *input_new(const char *p_buf)
+{
+    input_t *p_input = NULL;
+    const char *failure;
+
+#define TRY(method)                                                             \
+    do                                                                          \
+    {                                                                           \
+        if(!method(&p_input, p_buf))                                            \
+        {                                                                       \
+            failure = #method;                                                  \
+            goto fail;                                                          \
+        }                                                                       \
+    }                                                                           \
+    while(false)
+
+    TRY(input_prepend_decimal);
+
+#undef TRY
 
     return p_input;
 
 fail:
+    fprintf(stderr,
+            "%s: %s failed for '%s'\n",
+            __func__, failure, p_buf);
     input_free(p_input);
     p_input = NULL;
     return p_input;
