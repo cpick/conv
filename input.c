@@ -33,21 +33,43 @@
 #include <input.h>
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 
+static bool input_prepend(input_t **pp_input, uint32_t value)
+{
+    static const input_t INPUT_INITIALIZER;
 
-static const input_t INPUT_INITIALIZER;
+    input_t *p_input = malloc(sizeof(*p_input));
+    if(!p_input)
+    {
+        fprintf(stderr,
+                "%s: malloc failed\n",
+                __func__);
+        return false;
+    }
+
+    *p_input = INPUT_INITIALIZER;
+    p_input->p_next = *pp_input;
+    p_input->value = value;
+
+    *pp_input = p_input;
+    return true;
+}
 
 input_t *input_new(const char *p_buf)
 {
-    input_t *p_input = malloc(sizeof(*p_input));
-    *p_input = INPUT_INITIALIZER;
+    input_t *p_input = NULL;
 
     char *p_buf_parse_end;
     errno = 0;
-    p_input->value = strtol(p_buf, &p_buf_parse_end, 0 /*base*/);
+    uint32_t value = strtol(p_buf, &p_buf_parse_end, 0 /*base*/);
     if((p_buf == p_buf_parse_end) || (*p_buf_parse_end != '\0')
             || (errno == ERANGE))
+        goto fail;
+
+    if(!input_prepend(&p_input, value))
         goto fail;
 
     return p_input;
