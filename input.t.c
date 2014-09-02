@@ -33,32 +33,56 @@
 #include <input.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+bool value_find_and_remove(input_t **pp_input, uint32_t value)
+{
+    for(; *pp_input; pp_input = &((*pp_input)->p_next))
+    {
+        if(value != (*pp_input)->value)
+            continue;
+
+        *pp_input = (*pp_input)->p_next;
+        return true;
+    }
+
+    return false;
+}
 
 int main(void)
 {
     /* test decimal */
 
-    input_t *p_input = input_new("1234");
-    if(!p_input)
+    input_t input_expected =
     {
-        fprintf(stderr, "%s: input_new failed\n", __func__);
-        return EXIT_FAILURE;
+        .value = 1234
+    };
+    input_t *p_input_expected = &input_expected;
+
+    input_t *p_input = input_new("1234");
+    input_t *p_input_iter;
+    for(
+            p_input_iter = p_input;
+            p_input_iter;
+            p_input_iter = p_input_iter->p_next
+       )
+    {
+        if(!value_find_and_remove(&p_input_expected, p_input_iter->value))
+        {
+            fprintf(stderr,
+                    "%s: unexpected value: %" PRIu32 "\n",
+                    __func__, p_input_iter->value);
+            return EXIT_FAILURE;
+        }
     }
 
-    uint32_t value_expected = 1234;
-    if(value_expected != p_input->value)
+    if(p_input_expected)
     {
         fprintf(stderr,
-                "%s: value expected: %" PRIu32 " got: %" PRIu32 "\n",
-                __func__, value_expected, p_input->value);
-        return EXIT_FAILURE;
-    }
-
-    if(p_input->p_next)
-    {
-        fprintf(stderr, "%s: unexpected next\n", __func__);
+                "%s: expected value(s) missing, including: %" PRIu32 "\n",
+                __func__, p_input_expected->value);
         return EXIT_FAILURE;
     }
 
