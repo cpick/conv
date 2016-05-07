@@ -54,3 +54,7 @@ target_compile_options(conv PRIVATE "-Wall" "-W")
 target_include_directories(conv PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_BINARY_DIR} ${CURSES_INCLUDE_DIR})
 target_link_libraries(conv PRIVATE ${CURSES_LIBRARIES})
+
+# install
+
+install(TARGETS conv DESTINATION "bin")
