@@ -28,30 +28,29 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Chris Pick.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION "2.8")
 
 # project
 
-project(conv)
-set(CMAKE_VERBOSE_MAKEFILE OFF)
+project(conv "C")
+
+# settings
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # dependencies
 
 find_package(Curses)
 
+# configuration
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/config.h")
+
 # build
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
-        ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-        ${CURSES_INCLUDE_DIR})
-
-set(CMAKE_C_FLAGS "-Wall -W")
-set(CMAKE_C_FLAGS_DEBUG "-g")
-
-set(conv_SRCS "conv.c")
-set(conv_LIBS ${CURSES_LIBRARIES})
-
-add_executable(conv ${conv_SRCS})
-target_link_libraries(conv ${conv_LIBS})
+add_executable(conv "conv.c")
+target_compile_options(conv PRIVATE "-Wall" "-W")
+target_include_directories(conv PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR} ${CURSES_INCLUDE_DIR})
+target_link_libraries(conv PRIVATE ${CURSES_LIBRARIES})
