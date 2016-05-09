@@ -55,11 +55,19 @@ int main(void)
 {
     /* test decimal */
 
-    input_t input_expected =
+    input_t inputs_expected[] =
     {
-        .value = 1234
+        {
+            .value = 1234
+        }
+      , {
+            .p_next = &inputs_expected[0]
+          , .value = 0x1234
+        }
     };
-    input_t *p_input_expected = &input_expected;
+    input_t *p_input_expected = &inputs_expected[
+            (sizeof(inputs_expected) / sizeof(inputs_expected[0])) - 1
+        ];
 
     input_t *p_input = input_new("1234");
     input_t *p_input_iter;
